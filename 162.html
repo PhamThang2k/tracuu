@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tra cứu từ Google Sheets</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin:auto;}
+    input { width:100%; padding:10px; margin-bottom:10px; font-size:16px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+    th { background:#f2f2f2; }
+    tr:hover { background:#e6f7ff; }
+  </style>
+</head>
+<body>
+  <h2>🔍 Tra cứu danh sách Lữ đoàn 162</h2>
+  <input id="searchInput" placeholder="Nhập họ tên cần tìm...">
+  <table id="resultTable">
+    <thead><tr>
+      <th>Họ và tên</th>
+      <th>Cấp bậc</th>
+      <th>Chức vụ</th>
+    </tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <script>
+    const sheetID = "1EuPmdQOYDARdm4DVwrB8XFdLikJwkBnA";
+    const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+
+    let fullData = [];
+    const input = document.getElementById("searchInput");
+    const tableBody = document.getElementById("tableBody");
+
+    fetch(url)
+      .then(res => res.text())
+      .then(t => JSON.parse(t.substr(47).slice(0, -2)))
+      .then(json => {
+        const cols = json.table.cols.map(c => c.label);
+        fullData = json.table.rows.map(r => {
+          const obj = {};
+          r.c.forEach((cell,i) => obj[cols[i]] = cell ? cell.v : "");
+          return obj;
+        });
+        render(fullData);
+      })
+      .catch(err => console.error("Không tải được dữ liệu:", err));
+
+    function render(data) {
+      tableBody.innerHTML = "";
+      data.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r["Họ và tên"] || ""}</td>
+          <td>${r["Cấp bậc"] || ""}</td>
+          <td>${r["Chức vụ"] || ""}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    input.addEventListener("input", () => {
+      const kw = input.value.toLowerCase();
+      const filtered = fullData.filter(r => r["Họ và tên"] && r["Họ và tên"].toLowerCase().includes(kw));
+      render(filtered);
+    });
+  </script>
+</body>
+</html>
