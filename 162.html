@@ -9,28 +9,40 @@
     table { width:100%; border-collapse:collapse; margin-top:10px; }
     th, td { border:1px solid #ccc; padding:8px; text-align:left; }
     th { background:#f2f2f2; }
-    tr:hover { background:#e6f7ff; }
+    tr:hover { background:#e6f7ff; cursor: pointer; }
+    #detailBox { margin-top:20px; padding:10px; border:1px solid #ccc; display:none; background:#f9f9f9; }
+    #viewDoc { margin-top: 10px; display: inline-block; background: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; }
+    #viewDoc:hover { background: #0056b3; }
   </style>
 </head>
 <body>
   <h2>🔍 Tra cứu danh sách Lữ đoàn 162</h2>
   <input id="searchInput" placeholder="Nhập họ tên cần tìm...">
   <table id="resultTable">
-    <thead><tr>
-      <th>Họ và tên</th>
-      <th>Cấp bậc</th>
-      <th>Chức vụ</th>
-    </tr></thead>
+    <thead><tr><th>Họ và tên</th></tr></thead>
     <tbody id="tableBody"></tbody>
   </table>
 
+  <div id="detailBox">
+    <h3>Thông tin chi tiết</h3>
+    <p><strong>Họ và tên:</strong> <span id="detailName"></span></p>
+    <p><strong>Cấp bậc:</strong> <span id="detailRank"></span></p>
+    <p><strong>Chức vụ:</strong> <span id="detailPosition"></span></p>
+    <a id="viewDoc" href="#" target="_blank" style="display:none;">📄 Xem tài liệu</a>
+  </div>
+
   <script>
-    const sheetID = "1EuPmdQOYDARdm4DVwrB8XFdLikJwkBnA";
+    const sheetID = "1EuPmdQOYDARdm4DVwrB8XFdLikJwkBnA"; // thay bằng ID sheet thật của bạn
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
 
     let fullData = [];
     const input = document.getElementById("searchInput");
     const tableBody = document.getElementById("tableBody");
+    const detailBox = document.getElementById("detailBox");
+    const detailName = document.getElementById("detailName");
+    const detailRank = document.getElementById("detailRank");
+    const detailPosition = document.getElementById("detailPosition");
+    const viewDoc = document.getElementById("viewDoc");
 
     fetch(url)
       .then(res => res.text())
@@ -39,10 +51,10 @@
         const cols = json.table.cols.map(c => c.label);
         fullData = json.table.rows.map(r => {
           const obj = {};
-          r.c.forEach((cell,i) => obj[cols[i]] = cell ? cell.v : "");
+          r.c.forEach((cell, i) => obj[cols[i]] = cell ? cell.v : "");
           return obj;
         });
-        render(fullData);
+        render([]);
       })
       .catch(err => console.error("Không tải được dữ liệu:", err));
 
@@ -50,19 +62,32 @@
       tableBody.innerHTML = "";
       data.forEach(r => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r["Họ và tên"] || ""}</td>
-          <td>${r["Cấp bậc"] || ""}</td>
-          <td>${r["Chức vụ"] || ""}</td>
-        `;
+        tr.innerHTML = `<td>${r["Họ và tên"] || ""}</td>`;
+        tr.addEventListener("click", () => showDetails(r));
         tableBody.appendChild(tr);
       });
+    }
+
+    function showDetails(person) {
+      detailName.textContent = person["Họ và tên"] || "";
+      detailRank.textContent = person["Cấp bậc"] || "Chưa rõ";
+      detailPosition.textContent = person["Chức vụ"] || "Chưa rõ";
+
+      if (person["Tài liệu"] && person["Tài liệu"].startsWith("http")) {
+        viewDoc.href = person["Tài liệu"];
+        viewDoc.style.display = "inline-block";
+      } else {
+        viewDoc.style.display = "none";
+      }
+
+      detailBox.style.display = "block";
     }
 
     input.addEventListener("input", () => {
       const kw = input.value.toLowerCase();
       const filtered = fullData.filter(r => r["Họ và tên"] && r["Họ và tên"].toLowerCase().includes(kw));
       render(filtered);
+      detailBox.style.display = "none";
     });
   </script>
 </body>
