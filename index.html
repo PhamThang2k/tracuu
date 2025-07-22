@@ -1,18 +1,102 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Đang tập làm nhé</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="index.css">
-    </head>
-    <body>
-        <h1>
-            Yêu thanh nhã nhất trên đời
-        </h1>
-        
-        <script src="" async defer></script>
-    </body>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tra cứu GDCT LĐ 162</title>
+   <link rel="stylesheet" href="index.css">
+  
+</head>
+<body>
+  <!-- Overlay hình ảnh trên và dưới -->
+  <img class="overlay-top" src="image/khungtren1.png" alt="Khung trên">
+  <img class="overlay-bottom" src="image/khungduoi.png" alt="Khung dưới">
+
+  <div class="container">
+    <h2>🔍 Tra cứu GDCT Lữ đoàn 162</h2>
+    <input id="searchInput" placeholder="Nhập họ tên cần tìm...">
+    <table id="resultTable">
+      <thead><tr><th>Họ và tên</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div id="detailBox">
+      <h3>Thông tin chi tiết</h3>
+      <p><strong>Họ và tên:</strong> <span id="detailName"></span></p>
+      <p><strong>Cấp bậc:</strong> <span id="detailRank"></span></p>
+      <p><strong>Chức vụ:</strong> <span id="detailPosition"></span></p>
+      <img id="detailImage" src="" alt="Ảnh cán bộ">
+      <a id="viewDoc" href="#" target="_blank" style="display:none;">Xem tài liệu</a>
+    </div>
+  </div>
+
+  <script>
+    const sheetID = "1EuPmdQOYDARdm4DVwrB8XFdLikJwkBnA"; // thay bằng ID sheet thật của bạn
+    const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+
+    let fullData = [];
+    const input = document.getElementById("searchInput");
+    const tableBody = document.getElementById("tableBody");
+    const detailBox = document.getElementById("detailBox");
+    const detailName = document.getElementById("detailName");
+    const detailRank = document.getElementById("detailRank");
+    const detailPosition = document.getElementById("detailPosition");
+    const viewDoc = document.getElementById("viewDoc");
+    const detailImage = document.getElementById("detailImage");
+
+    fetch(url)
+      .then(res => res.text())
+      .then(t => JSON.parse(t.substr(47).slice(0, -2)))
+      .then(json => {
+        const cols = json.table.cols.map(c => c.label);
+        fullData = json.table.rows.map(r => {
+          const obj = {};
+          r.c.forEach((cell, i) => obj[cols[i]] = cell ? cell.v : "");
+          return obj;
+        });
+        render([]);
+      })
+      .catch(err => console.error("Không tải được dữ liệu:", err));
+
+    function render(data) {
+      tableBody.innerHTML = "";
+      data.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${r["Họ và tên"] || ""}</td>`;
+        tr.addEventListener("click", () => showDetails(r));
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function showDetails(person) {
+      detailName.textContent = person["Họ và tên"] || "";
+      detailRank.textContent = person["Cấp bậc"] || "Chưa rõ";
+      detailPosition.textContent = person["Chức vụ"] || "Chưa rõ";
+
+      if (person["Tài liệu"] && person["Tài liệu"].startsWith("http")) {
+        viewDoc.href = person["Tài liệu"];
+        viewDoc.style.display = "inline-block";
+      } else {
+        viewDoc.style.display = "none";
+      }
+
+      // Tự động hiển thị ảnh từ thư mục image/
+      if (person["Họ và tên"]) {
+        const imageName = person["Họ và tên"].replace(/\s+/g, '_').toLowerCase() + ".jpg";
+        detailImage.src = `image/${imageName}`;
+        detailImage.style.display = "block";
+      } else {
+        detailImage.style.display = "none";
+      }
+
+      detailBox.style.display = "block";
+    }
+
+    input.addEventListener("input", () => {
+      const kw = input.value.toLowerCase();
+      const filtered = fullData.filter(r => r["Họ và tên"] && r["Họ và tên"].toLowerCase().includes(kw));
+      render(filtered);
+      detailBox.style.display = "none";
+    });
+  </script>
+</body>
 </html>
