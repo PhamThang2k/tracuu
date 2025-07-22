@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tra cứu từ Google Sheets</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin:auto;}
+    input { width:100%; padding:10px; margin-bottom:10px; font-size:16px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+    th { background:#f2f2f2; }
+    tr:hover { background:#e6f7ff; cursor: pointer; }
+    #detailBox { margin-top:20px; padding:10px; border:1px solid #ccc; display:none; background:#f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>🔍 Tra cứu danh sách Lữ đoàn 162</h2>
+  <input id="searchInput" placeholder="Nhập họ tên cần tìm...">
+  <table id="resultTable">
+    <thead><tr><th>Họ và tên</th></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <div id="detailBox">
+    <h3>Thông tin chi tiết</h3>
+    <p><strong>Họ và tên:</strong> <span id="detailName"></span></p>
+    <p><strong>Cấp bậc:</strong> <span id="detailRank"></span></p>
+    <p><strong>Chức vụ:</strong> <span id="detailPosition"></span></p>
+  </div>
+
+  <script>
+    const sheetID = "1EuPmdQOYDARdm4DVwrB8XFdLikJwkBnA";
+    const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+
+    let fullData = [];
+    const input = document.getElementById("searchInput");
+    const tableBody = document.getElementById("tableBody");
+    const detailBox = document.getElementById("detailBox");
+    const detailName = document.getElementById("detailName");
+    const detailRank = document.getElementById("detailRank");
+    const detailPosition = document.getElementById("detailPosition");
+
+    fetch(url)
+      .then(res => res.text())
+      .then(t => JSON.parse(t.substr(47).slice(0, -2)))
+      .then(json => {
+        const cols = json.table.cols.map(c => c.label);
+        fullData = json.table.rows.map(r => {
+          const obj = {};
+          r.c.forEach((cell, i) => obj[cols[i]] = cell ? cell.v : "");
+          return obj;
+        });
+        render([]);
+      })
+      .catch(err => console.error("Không tải được dữ liệu:", err));
+
+    function render(data) {
+      tableBody.innerHTML = "";
+      data.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${r["Họ và tên"] || ""}</td>`;
+        tr.addEventListener("click", () => showDetails(r));
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function showDetails(person) {
+      detailName.textContent = person["Họ và tên"] || "";
+      detailRank.textContent = person["Cấp bậc"] || "Chưa rõ";
+      detailPosition.textContent = person["Chức vụ"] || "Chưa rõ";
+      detailBox.style.display = "block";
+    }
+
+    input.addEventListener("input", () => {
+      const kw = input.value.toLowerCase();
+      const filtered = fullData.filter(r => r["Họ và tên"] && r["Họ và tên"].toLowerCase().includes(kw));
+      render(filtered);
+      detailBox.style.display = "none";
+    });
+  </script>
+</body>
+</html>

@@ -2,33 +2,31 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Tra cứu từ Google Sheets</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin:auto;}
-    input { width:100%; padding:10px; margin-bottom:10px; font-size:16px; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border:1px solid #ccc; padding:8px; text-align:left; }
-    th { background:#f2f2f2; }
-    tr:hover { background:#e6f7ff; cursor: pointer; }
-    #detailBox { margin-top:20px; padding:10px; border:1px solid #ccc; display:none; background:#f9f9f9; }
-    #viewDoc { margin-top: 10px; display: inline-block; background: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; }
-    #viewDoc:hover { background: #0056b3; }
-  </style>
+  <title>Tra cứu GDCT LĐ 162</title>
+   <link rel="stylesheet" href="index.css">
+  
 </head>
 <body>
-  <h2>🔍 Tra cứu danh sách Lữ đoàn 162</h2>
-  <input id="searchInput" placeholder="Nhập họ tên cần tìm...">
-  <table id="resultTable">
-    <thead><tr><th>Họ và tên</th></tr></thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+  <!-- Overlay hình ảnh trên và dưới -->
+  <img class="overlay-top" src="image/khungtren1.png" alt="Khung trên">
+  <img class="overlay-bottom" src="image/khungduoi.png" alt="Khung dưới">
 
-  <div id="detailBox">
-    <h3>Thông tin chi tiết</h3>
-    <p><strong>Họ và tên:</strong> <span id="detailName"></span></p>
-    <p><strong>Cấp bậc:</strong> <span id="detailRank"></span></p>
-    <p><strong>Chức vụ:</strong> <span id="detailPosition"></span></p>
-    <a id="viewDoc" href="#" target="_blank" style="display:none;">📄 Xem tài liệu</a>
+  <div class="container">
+    <h2>🔍 Tra cứu GDCT Lữ đoàn 162</h2>
+    <input id="searchInput" placeholder="Nhập họ tên cần tìm...">
+    <table id="resultTable">
+      <thead><tr><th>Họ và tên</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div id="detailBox">
+      <h3>Thông tin chi tiết</h3>
+      <p><strong>Họ và tên:</strong> <span id="detailName"></span></p>
+      <p><strong>Cấp bậc:</strong> <span id="detailRank"></span></p>
+      <p><strong>Chức vụ:</strong> <span id="detailPosition"></span></p>
+      <img id="detailImage" src="" alt="Ảnh cán bộ">
+      <a id="viewDoc" href="#" target="_blank" style="display:none;">Xem tài liệu</a>
+    </div>
   </div>
 
   <script>
@@ -43,6 +41,7 @@
     const detailRank = document.getElementById("detailRank");
     const detailPosition = document.getElementById("detailPosition");
     const viewDoc = document.getElementById("viewDoc");
+    const detailImage = document.getElementById("detailImage");
 
     fetch(url)
       .then(res => res.text())
@@ -78,6 +77,15 @@
         viewDoc.style.display = "inline-block";
       } else {
         viewDoc.style.display = "none";
+      }
+
+      // Tự động hiển thị ảnh từ thư mục image/
+      if (person["Họ và tên"]) {
+        const imageName = person["Họ và tên"].replace(/\s+/g, '_').toLowerCase() + ".jpg";
+        detailImage.src = `image/${imageName}`;
+        detailImage.style.display = "block";
+      } else {
+        detailImage.style.display = "none";
       }
 
       detailBox.style.display = "block";
